@@ -1,34 +1,71 @@
-import { assertNotNull, Store } from "@subsquid/substrate-evm-processor";
+// src/contract.ts
+import {
+  assertNotNull,
+  EvmLogHandlerContext,
+  Store,
+} from "@subsquid/substrate-evm-processor";
 import { ethers } from "ethers";
-import * as erc721 from "./abi/erc721";
-import { Contract } from "./model";
- 
-export const CHAIN_NODE = "wss://wss.api.moonriver.moonbeam.network";
+import { Contract, Owner, Token, Transfer } from "./model";
+import { events, abi } from "./abi/erc721";
 
-export const contract = new ethers.Contract(
-  "0xb654611f84a8dc429ba3cb4fda9fad236c505a1a",
-  erc721.abi,
-  new ethers.providers.WebSocketProvider(CHAIN_NODE)
-);
- 
-export function createContractEntity(): Contract {
-  return new Contract({
-    id: contract.address,
-    name: "Moonsama",
-    symbol: "MSAMA",
-    totalSupply: 1000n,
-  });
-}
- 
-let contractEntity: Contract | undefined;
- 
-export async function getContractEntity({
-  store,
-}: {
-  store: Store;
-}): Promise<Contract> {
+export const CHAIN_NODE = "wss://astar.api.onfinality.io/public-ws";
+
+export async function getContractEntity(
+  {
+    store,
+  }: {
+    store: Store;
+  },
+  ethersContract: ethers.Contract,
+  contractEntity: Contract | undefined
+): Promise<Contract> {
   if (contractEntity == null) {
-    contractEntity = await store.get(Contract, contract.address);
+    contractEntity = await store.get(Contract, ethersContract.address);
   }
   return assertNotNull(contractEntity);
+}
+
+export async function processTransfer(
+  ctx: EvmLogHandlerContext,
+  ethersContract: ethers.Contract
+): Promise<void> {
+  const transfer = events["Transfer(address,address,uint256)"].decode(ctx);
+
+  let from = await ctx.store.get(Owner, transfer.from);
+  if (from == null) {
+    from = new Owner({ id: transfer.from, balance: 0n });
+    await ctx.store.save(from);
+  }
+
+  let to = await ctx.store.get(Owner, transfer.to);
+  if (to == null) {
+    to = new Owner({ id: transfer.to, balance: 0n });
+    await ctx.store.save(to);
+  }
+
+  let token = await ctx.store.get(Token, transfer.tokenId.toString());
+  if (token == null) {
+    token = new Token({
+      id: transfer.tokenId.toString(),
+      uri: await ethersContract.tokenURI(transfer.tokenId),
+      contract: await getContractEntity(ctx, ethersContract, undefined),
+      owner: to,
+    });
+    await ctx.store.save(token);
+  } else {
+    token.owner = to;
+    await ctx.store.save(token);
+  }
+
+  await ctx.store.save(
+    new Transfer({
+      id: ctx.txHash,
+      token,
+      from,
+      to,
+      timestamp: BigInt(ctx.substrate.block.timestamp),
+      block: ctx.substrate.block.height,
+      transactionHash: ctx.txHash,
+    })
+  );
 }

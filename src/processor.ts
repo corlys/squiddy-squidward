@@ -1,78 +1,64 @@
-import {
-  EvmLogHandlerContext,
-  SubstrateEvmProcessor,
-} from "@subsquid/substrate-evm-processor";
+// src/processor.ts
+import { SubstrateEvmProcessor } from "@subsquid/substrate-evm-processor";
 import { lookupArchive } from "@subsquid/archive-registry";
-import { CHAIN_NODE, contract, createContractEntity, getContractEntity } from "./contract";
-import * as erc721 from "./abi/erc721";
-import { Owner, Token, Transfer } from "./model";
+import { CHAIN_NODE, processTransfer } from "./contract";
+import { events } from "./abi/erc721";
 
-const processor = new SubstrateEvmProcessor("moonriver-substrate");
+import { createAstarCatsContract, astarCatsContract, processAstarCatsTransfers } from "./helper/AstarCats"
+import { createJukiverseContract, jukiverseContract, processJukiverseTransfer } from "./helper/Jukiverse"
+
+const processor = new SubstrateEvmProcessor("astar-substrate");
+
+/**
+ * AstarCats startBlock : 800854
+ * AstarDegens startBlock : 442693
+ * Jukiverse startBlock : 1248161
+ */
+
+// listen from astarDegens startBlock and up!
+// processor.setBlockRange({ from: 442693 })
+
+// listen from astarCats startBlock and up!
+processor.setBlockRange({ from: 800854 })
+
+// listen from Jukiverse startBlock and up!
+// processor.setBlockRange({ from: 1248161 })
 
 processor.setBatchSize(500);
 
 processor.setDataSource({
   chain: CHAIN_NODE,
-  archive: lookupArchive("moonriver")[0].url,
+  archive: lookupArchive("astar")[0].url,
 });
 
-processor.setTypesBundle("moonbeam");
+processor.setTypesBundle("astar");
 
-processor.addPreHook({ range: { from: 0, to: 0 } }, async (ctx) => {
-  await ctx.store.save(createContractEntity());
+// Create AstarCats contract Entity in their startBlock
+processor.addPreHook({ range: { from: 800854, to: 800854 } }, async (ctx) => {
+  await ctx.store.save(createAstarCatsContract());
 });
 
+// Create Jukiverse contract Entity in their startBlock
+processor.addPreHook({ range: { from: 1248161, to: 1248161 } }, async (ctx) => {
+  await ctx.store.save(createJukiverseContract());
+});
+
+// Event listener for AstarCats Contract 
 processor.addEvmLogHandler(
-  contract.address,
+  astarCatsContract.address.toLowerCase(),
   {
-    filter: [erc721.events["Transfer(address,address,uint256)"].topic],
+    filter: [events["Transfer(address,address,uint256)"].topic],
   },
-  contractLogsHandler
+  processAstarCatsTransfers
 );
 
-export async function contractLogsHandler(
-  ctx: EvmLogHandlerContext
-): Promise<void> {
-  const transfer =
-    erc721.events["Transfer(address,address,uint256)"].decode(ctx);
-
-  let from = await ctx.store.get(Owner, transfer.from);
-  if (from == null) {
-    from = new Owner({ id: transfer.from, balance: 0n });
-    await ctx.store.save(from);
-  }
-
-  let to = await ctx.store.get(Owner, transfer.to);
-  if (to == null) {
-    to = new Owner({ id: transfer.to, balance: 0n });
-    await ctx.store.save(to);
-  }
-
-  let token = await ctx.store.get(Token, transfer.tokenId.toString());
-  if (token == null) {
-    token = new Token({
-      id: transfer.tokenId.toString(),
-      uri: await contract.tokenURI(transfer.tokenId),
-      contract: await getContractEntity(ctx),
-      owner: to,
-    });
-    await ctx.store.save(token);
-  } else {
-    token.owner = to;
-    await ctx.store.save(token);
-  }
-
-  await ctx.store.save(
-    new Transfer({
-      id: ctx.txHash,
-      token,
-      from,
-      to,
-      timestamp: BigInt(ctx.substrate.block.timestamp),
-      block: ctx.substrate.block.height,
-      transactionHash: ctx.txHash,
-    })
-  );
-}
+// Event listener for Jukiverse Contract 
+processor.addEvmLogHandler(
+  jukiverseContract.address.toLowerCase(),
+  {
+    filter: [events["Transfer(address,address,uint256)"].topic],
+  },
+  processJukiverseTransfer
+);
 
 processor.run();
