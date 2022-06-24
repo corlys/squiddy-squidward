@@ -8,7 +8,8 @@ import { ethers } from "ethers";
 import { Contract, Owner, Token, Transfer } from "./model";
 import { events, abi } from "./abi/erc721";
 
-export const CHAIN_NODE = "wss://astar.blastapi.io/c8339ca5-a887-4895-ad61-95f272e38496";
+export const CHAIN_NODE =
+  "wss://astar.api.onfinality.io/ws?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
 
 export async function getContractEntity(
   {
