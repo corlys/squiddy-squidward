@@ -19,10 +19,10 @@ const processor = new SubstrateEvmProcessor("astar-substrate");
 // processor.setBlockRange({ from: 442693 })
 
 // listen from astarCats startBlock and up!
-processor.setBlockRange({ from: 800854 })
+// processor.setBlockRange({ from: 800854 })
 
 // listen from Jukiverse startBlock and up!
-// processor.setBlockRange({ from: 1248161 })
+processor.setBlockRange({ from: 1248161 })
 
 processor.setBatchSize(500);
 
@@ -34,9 +34,9 @@ processor.setDataSource({
 processor.setTypesBundle("astar");
 
 // Create AstarCats contract Entity in their startBlock
-processor.addPreHook({ range: { from: 800854, to: 800854 } }, async (ctx) => {
-  await ctx.store.save(createAstarCatsContract());
-});
+// processor.addPreHook({ range: { from: 800854, to: 800854 } }, async (ctx) => {
+//   await ctx.store.save(createAstarCatsContract());
+// });
 
 // Create Jukiverse contract Entity in their startBlock
 processor.addPreHook({ range: { from: 1248161, to: 1248161 } }, async (ctx) => {
@@ -44,13 +44,13 @@ processor.addPreHook({ range: { from: 1248161, to: 1248161 } }, async (ctx) => {
 });
 
 // Event listener for AstarCats Contract 
-processor.addEvmLogHandler(
-  astarCatsContract.address.toLowerCase(),
-  {
-    filter: [events["Transfer(address,address,uint256)"].topic],
-  },
-  processAstarCatsTransfers
-);
+// processor.addEvmLogHandler(
+//   astarCatsContract.address.toLowerCase(),
+//   {
+//     filter: [events["Transfer(address,address,uint256)"].topic],
+//   },
+//   processAstarCatsTransfers
+// );
 
 // Event listener for Jukiverse Contract 
 processor.addEvmLogHandler(
