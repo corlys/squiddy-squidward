@@ -48,11 +48,11 @@ export async function processTransfer(
 
   let token = await ctx.store.get(
     Token,
-    contract.name + transfer.tokenId.toString()
+    contract.name + "-" + transfer.tokenId.toString()
   );
   if (token == null) {
     token = new Token({
-      id: contract.name + " " + transfer.tokenId.toString(),
+      id: contract.name + "-" + transfer.tokenId.toString(),
       uri: await ethersContract.tokenURI(transfer.tokenId),
       tokenId: transfer.tokenId.toNumber(),
       contract,
