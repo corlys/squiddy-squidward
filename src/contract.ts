@@ -57,7 +57,7 @@ export async function processTransfer(
       // id: ethersContract.address + "-" + transfer.tokenId.toString(),
       id: transfer.tokenId.toString(),
       uri: await ethersContract.tokenURI(transfer.tokenId),
-      // tokenId: transfer.tokenId.toNumber(),
+      tokenId: transfer.tokenId.toNumber(),
       contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,
     });
