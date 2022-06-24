@@ -44,15 +44,20 @@ export async function processTransfer(
     await ctx.store.save(to);
   }
 
+  // let token = await ctx.store.get(
+  //   Token,
+  //   ethersContract.address + "-" + transfer.tokenId.toString()
+  // );
   let token = await ctx.store.get(
     Token,
-    ethersContract.address + "-" + transfer.tokenId.toString()
+    transfer.tokenId.toString()
   );
   if (token == null) {
     token = new Token({
-      id: ethersContract.address + "-" + transfer.tokenId.toString(),
+      // id: ethersContract.address + "-" + transfer.tokenId.toString(),
+      id: transfer.tokenId.toString(),
       uri: await ethersContract.tokenURI(transfer.tokenId),
-      tokenId: transfer.tokenId.toNumber(),
+      // tokenId: transfer.tokenId.toNumber(),
       contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,
     });
