@@ -32,8 +32,6 @@ export async function processTransfer(
 ): Promise<void> {
   const transfer = events["Transfer(address,address,uint256)"].decode(ctx);
 
-  let contract = await getContractEntity(ctx, ethersContract, undefined);
-
   let from = await ctx.store.get(Owner, transfer.from);
   if (from == null) {
     from = new Owner({ id: transfer.from, balance: 0n });
@@ -48,14 +46,14 @@ export async function processTransfer(
 
   let token = await ctx.store.get(
     Token,
-    contract.name + "-" + transfer.tokenId.toString()
+    ethersContract.address + "-" + transfer.tokenId.toString()
   );
   if (token == null) {
     token = new Token({
-      id: contract.name + "-" + transfer.tokenId.toString(),
+      id: ethersContract.address + "-" + transfer.tokenId.toString(),
       uri: await ethersContract.tokenURI(transfer.tokenId),
       tokenId: transfer.tokenId.toNumber(),
-      contract,
+      contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,
     });
     await ctx.store.save(token);
