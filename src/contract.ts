@@ -51,10 +51,41 @@ export async function processTransfer(
   //   Token,
   //   contract.name + "-" + transfer.tokenId.toString()
   // );
-  console.log(ethersContract.address)
-  let token = await ctx.store.get(Token, `${ethersContract.address}-${transfer.tokenId.toString()}`);
+  console.log(
+    "================================================================================"
+  );
+  console.log(
+    `Now indexing contract : ${ethersContract.address} and the ctx is ${ctx.contractAddress}`
+  );
+  console.log(`at txHash : ${ctx.txHash}`);
+  console.log(`and block : ${ctx.substrate.block.height}`);
+  console.log(
+    `at timestamp : ${new Date(ctx.substrate.block.timestamp * 1000)}`
+  );
+  let token = await ctx.store.get(
+    Token,
+    `${ethersContract.address}-${transfer.tokenId.toString()}`
+  );
+  console.log(
+    `token that is fetched with id ${
+      ethersContract.address
+    }-${transfer.tokenId.toString()} is ${token}`
+  );
   if (token == null) {
-    token = new Token({
+    console.log("the token is null or undefined");
+    console.log("Heres the input : ");
+    console.log(
+      `id : ${ethersContract.address}-${transfer.tokenId.toString()}`
+    );
+    console.log(`uri : ${await ethersContract.tokenURI(transfer.tokenId)}`);
+    console.log(`tokenId: ${parseInt(transfer.tokenId.toString())}`);
+    console.log(`to address : ${to.id}`);
+    console.log(
+      `contract address ${
+        (await getContractEntity(ctx, ethersContract, undefined)).id
+      }`
+    );
+    const input = {
       // id: contract.name + "-" + transfer.tokenId.toString(),
       // id: transfer.tokenId.toString(),
       id: `${ethersContract.address}-${transfer.tokenId.toString()}`,
@@ -62,14 +93,26 @@ export async function processTransfer(
       tokenId: parseInt(transfer.tokenId.toString()),
       contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,
-    });
+    };
+    console.log(`token input : ${input}`);
+    token = new Token(input);
+    console.log(`token that is made: ${token}`);
     await ctx.store.save(token);
+    token = await ctx.store.get(Token, token.id);
+    console.log(`token that is saved: ${token}`);
   } else {
+    console.log("the token exist");
     token.owner = to;
+    console.log(`token that is updated: ${token}`);
     await ctx.store.save(token);
+    token = await ctx.store.get(Token, token.id);
+    console.log(`token that is saved: ${token}`);
   }
 
-  await ctx.store.save(
+  console.log(`from : ${from.id}`);
+  console.log(`to : ${to.id}`);
+
+  const saveTransfer = await ctx.store.save(
     new Transfer({
       id: ctx.txHash,
       token,
@@ -79,5 +122,10 @@ export async function processTransfer(
       block: ctx.substrate.block.height,
       transactionHash: ctx.txHash,
     })
+  );
+
+  console.log(`transfer : ${saveTransfer.transactionHash}`);
+  console.log(
+    "===============================================================================n\n"
   );
 }

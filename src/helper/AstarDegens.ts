@@ -5,7 +5,7 @@ import { abi } from "../abi/erc721";
 import { CHAIN_NODE, processTransfer } from "../contract";
 
 export const astarDegensContract = new ethers.Contract(
-  "0xd59fC6Bfd9732AB19b03664a45dC29B8421BDA9a",
+  "0xd59fC6Bfd9732AB19b03664a45dC29B8421BDA9a".toLowerCase(),
   abi,
   new ethers.providers.WebSocketProvider(CHAIN_NODE)
 );
