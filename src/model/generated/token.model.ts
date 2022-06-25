@@ -12,6 +12,9 @@ export class Token {
   @PrimaryColumn_()
   id!: string
 
+  @Column_("integer", {nullable: true})
+  tokenId!: number | undefined | null
+
   @Index_()
   @ManyToOne_(() => Owner, {nullable: true})
   owner!: Owner | undefined | null

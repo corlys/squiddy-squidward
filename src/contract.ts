@@ -22,6 +22,7 @@ export async function getContractEntity(
 ): Promise<Contract> {
   if (contractEntity == null) {
     contractEntity = await store.get(Contract, ethersContract.address);
+    console.log(contractEntity);
   }
   return assertNotNull(contractEntity);
 }
@@ -44,23 +45,20 @@ export async function processTransfer(
     await ctx.store.save(to);
   }
 
-  const contract = await getContractEntity(ctx, ethersContract, undefined)
+  // const contract = await getContractEntity(ctx, ethersContract, undefined)
 
-  let token = await ctx.store.get(
-    Token,
-    contract.name + "-" + transfer.tokenId.toString()
-  );
   // let token = await ctx.store.get(
   //   Token,
-  //   transfer.tokenId.toString()
+  //   contract.name + "-" + transfer.tokenId.toString()
   // );
+  let token = await ctx.store.get(Token, transfer.tokenId.toString());
   if (token == null) {
     token = new Token({
-      id: contract.name + "-" + transfer.tokenId.toString(),
-      // id: transfer.tokenId.toString(),
+      // id: contract.name + "-" + transfer.tokenId.toString(),
+      id: transfer.tokenId.toString(),
       uri: await ethersContract.tokenURI(transfer.tokenId),
-      // tokenId: transfer.tokenId.toNumber(),
-      contract,
+      tokenId: parseInt(transfer.tokenId.toString()),
+      contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,
     });
     await ctx.store.save(token);
