@@ -44,9 +44,11 @@ export async function processTransfer(
     await ctx.store.save(to);
   }
 
+  const contract = await getContractEntity(ctx, ethersContract, undefined)
+
   let token = await ctx.store.get(
     Token,
-    ethersContract.address + "-" + transfer.tokenId.toString()
+    contract.name + "-" + transfer.tokenId.toString()
   );
   // let token = await ctx.store.get(
   //   Token,
@@ -54,11 +56,11 @@ export async function processTransfer(
   // );
   if (token == null) {
     token = new Token({
-      id: ethersContract.address + "-" + transfer.tokenId.toString(),
+      id: contract.name + "-" + transfer.tokenId.toString(),
       // id: transfer.tokenId.toString(),
       uri: await ethersContract.tokenURI(transfer.tokenId),
       // tokenId: transfer.tokenId.toNumber(),
-      contract: await getContractEntity(ctx, ethersContract, undefined),
+      contract,
       owner: to,
     });
     await ctx.store.save(token);
