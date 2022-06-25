@@ -22,7 +22,7 @@ export async function getContractEntity(
 ): Promise<Contract> {
   if (contractEntity == null) {
     contractEntity = await store.get(Contract, ethersContract.address);
-    console.log(contractEntity);
+    // console.log(contractEntity);
   }
   return assertNotNull(contractEntity);
 }
@@ -51,11 +51,13 @@ export async function processTransfer(
   //   Token,
   //   contract.name + "-" + transfer.tokenId.toString()
   // );
-  let token = await ctx.store.get(Token, transfer.tokenId.toString());
+  console.log(ethersContract.address)
+  let token = await ctx.store.get(Token, `${ethersContract.address}-${transfer.tokenId.toString()}`);
   if (token == null) {
     token = new Token({
       // id: contract.name + "-" + transfer.tokenId.toString(),
-      id: transfer.tokenId.toString(),
+      // id: transfer.tokenId.toString(),
+      id: `${ethersContract.address}-${transfer.tokenId.toString()}`,
       uri: await ethersContract.tokenURI(transfer.tokenId),
       tokenId: parseInt(transfer.tokenId.toString()),
       contract: await getContractEntity(ctx, ethersContract, undefined),
