@@ -8,8 +8,9 @@ import { ethers } from "ethers";
 import { Contract, Owner, Token, Transfer } from "./model";
 import { events, abi } from "./abi/erc721";
 
-export const CHAIN_NODE =
-  "wss://astar.api.onfinality.io/ws?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
+// export const CHAIN_NODE =
+//   "wss://astar.api.onfinality.io/ws?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
+export const CHAIN_NODE = "wss://astar.api.onfinality.io/public-ws";
 
 export async function getContractEntity(
   {
@@ -77,7 +78,12 @@ export async function processTransfer(
     console.log(
       `id : ${ethersContract.address}-${transfer.tokenId.toString()}`
     );
-    console.log(`uri : ${await ethersContract.tokenURI(transfer.tokenId)}`);
+    console.log(
+      `the token id thats gonna be fetched in ${
+        ethersContract.address
+      } is ${transfer.tokenId.toNumber()}`
+    );
+    // console.log(`uri : ${await ethersContract.tokenURI(transfer.tokenId)}`);
     console.log(`tokenId: ${parseInt(transfer.tokenId.toString())}`);
     console.log(`to address : ${to.id}`);
     console.log(
@@ -89,7 +95,7 @@ export async function processTransfer(
       // id: contract.name + "-" + transfer.tokenId.toString(),
       // id: transfer.tokenId.toString(),
       id: `${ethersContract.address}-${transfer.tokenId.toString()}`,
-      uri: await ethersContract.tokenURI(transfer.tokenId),
+      uri: await ethersContract.tokenURI(parseInt(transfer.tokenId.toString())),
       tokenId: parseInt(transfer.tokenId.toString()),
       contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,

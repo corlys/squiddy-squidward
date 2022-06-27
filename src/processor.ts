@@ -54,23 +54,15 @@ processor.addPreHook({ range: { from: 442693, to: 442693 } }, async (ctx) => {
   await ctx.store.save(createAstarDegenContract());
 });
 
-processor.addPreHook({ range: { from: 442693, to: 442693 } }, async (ctx) => {
+// Create AstarCats contract Entity in their startBlock
+processor.addPreHook({ range: { from: 800854, to: 800854 } }, async (ctx) => {
   await ctx.store.save(createAstarCatsContract());
 });
 
-processor.addPreHook({ range: { from: 442693, to: 442693 } }, async (ctx) => {
+// Create Jukiverse contract Entity in their startBlock
+processor.addPreHook({ range: { from: 1248161, to: 1248161 } }, async (ctx) => {
   await ctx.store.save(createJukiverseContract());
 });
-
-// Create AstarCats contract Entity in their startBlock
-// processor.addPreHook({ range: { from: 800854, to: 800854 } }, async (ctx) => {
-//   await ctx.store.save(createAstarCatsContract());
-// });
-
-// Create Jukiverse contract Entity in their startBlock
-// processor.addPreHook({ range: { from: 1248161, to: 1248161 } }, async (ctx) => {
-//   await ctx.store.save(createJukiverseContract());
-// });
 
 // Event listener for Astar Degens
 processor.addEvmLogHandler(
