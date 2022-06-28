@@ -1,7 +1,7 @@
 // src/processor.ts
 import { SubstrateEvmProcessor } from "@subsquid/substrate-evm-processor";
 import { lookupArchive } from "@subsquid/archive-registry";
-import { CHAIN_NODE, processTransfer } from "./contract";
+import { PUBLIC_CHAIN_NODE, processTransfer } from "./contract";
 import { events } from "./abi/erc721";
 
 import {
@@ -40,7 +40,7 @@ processor.setBlockRange({ from: 442693 });
 processor.setBatchSize(500);
 
 processor.setDataSource({
-  chain: CHAIN_NODE,
+  chain: PUBLIC_CHAIN_NODE,
   archive: lookupArchive("astar")[0].url,
 });
 

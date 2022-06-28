@@ -23,11 +23,8 @@
     "@subsquid/substrate-processor": "^0.8.0",
     "dotenv": "^16.0.1",
     "ethers": "^5.6.9",
-    "moralis-web3-providers-ws": "^0.0.1-security",
     "pg": "^8.7.3",
-    "typeorm": "^0.2.41",
-    "web3": "^1.7.4",
-    "web3-providers-ws": "^1.7.4"
+    "typeorm": "^0.3.6"
   },
   "devDependencies": {
     "@subsquid/substrate-metadata-explorer": "^0.0.8",

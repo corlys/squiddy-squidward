@@ -10,7 +10,11 @@ import { events, abi } from "./abi/erc721";
 
 // export const CHAIN_NODE =
 //   "wss://astar.api.onfinality.io/ws?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
-export const CHAIN_NODE = "wss://astar.api.onfinality.io/public-ws";
+export const PUBLIC_CHAIN_NODE = "wss://astar.api.onfinality.io/public-ws";
+export const PRIVATE_CHAIN_NODE =
+  "wss://astar.api.onfinality.io/ws?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
+export const HTTPS_NODE =
+  "https://astar.api.onfinality.io/rpc?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
 
 export async function getContractEntity(
   {
@@ -23,7 +27,6 @@ export async function getContractEntity(
 ): Promise<Contract> {
   if (contractEntity == null) {
     contractEntity = await store.get(Contract, ethersContract.address);
-    // console.log(contractEntity);
   }
   return assertNotNull(contractEntity);
 }
@@ -34,9 +37,7 @@ export async function processTransfer(
 ): Promise<void> {
   const transfer = events["Transfer(address,address,uint256)"].decode(ctx);
 
-  console.log(`BEGIN listening block ${ctx.substrate.block.height}`)
-
-  // const tokenURI: string = await ethersContract.tokenURI(transfer.tokenId.toString());
+  console.log(`listening block ${ctx.substrate.block.height}`);
 
   let from = await ctx.store.get(Owner, transfer.from);
   if (from == null) {
@@ -49,13 +50,6 @@ export async function processTransfer(
     to = new Owner({ id: transfer.to, balance: 0n });
     await ctx.store.save(to);
   }
-
-  // const contract = await getContractEntity(ctx, ethersContract, undefined)
-
-  // let token = await ctx.store.get(
-  //   Token,
-  //   contract.name + "-" + transfer.tokenId.toString()
-  // );
   console.log(
     "================================================================================"
   );
@@ -87,7 +81,6 @@ export async function processTransfer(
         ethersContract.address
       } is ${transfer.tokenId.toNumber()}`
     );
-    // console.log(`uri : ${await ethersContract.tokenURI(transfer.tokenId)}`);
     console.log(`tokenId: ${parseInt(transfer.tokenId.toString())}`);
     console.log(`to address : ${to.id}`);
     console.log(
@@ -96,10 +89,8 @@ export async function processTransfer(
       }`
     );
     const input = {
-      // id: contract.name + "-" + transfer.tokenId.toString(),
-      // id: transfer.tokenId.toString(),
       id: `${ethersContract.address}-${transfer.tokenId.toString()}`,
-      // uri: await ethersContract.tokenURI(parseInt(transfer.tokenId.toString())),
+      uri: await ethersContract.tokenURI(transfer.tokenId.toString()),
       // uri: tokenURI,
       tokenId: parseInt(transfer.tokenId.toString()),
       contract: await getContractEntity(ctx, ethersContract, undefined),
