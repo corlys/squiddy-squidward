@@ -1,6 +1,6 @@
 import { EvmLogHandlerContext } from "@subsquid/substrate-evm-processor";
 // import { WebsocketProvider as W3S} from "web3-providers-ws";
-import Web3 from "web3";
+// import Web3 from "web3";
 import { ethers } from "ethers";
 import { Contract } from "../model";
 import { abi } from "../abi/erc721";

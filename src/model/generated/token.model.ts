@@ -12,7 +12,7 @@ export class Token {
   @PrimaryColumn_()
   id!: string
 
-  @Column_("int4", {nullable: true})
+  @Column_("integer", {nullable: true})
   tokenId!: number | undefined | null
 
   @Index_()
