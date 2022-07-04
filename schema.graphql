@@ -1,3 +1,6 @@
+# sorting token terbaru bisa kita pakai blockNumber asc/dsc
+# jadi waktu handleSale kita taro blockNumberSale nya terus di sorting
+# waktu listing juga bisa, blockNumberListing
 type Token @entity {
   id: ID!
   tokenId: Int
@@ -30,3 +33,20 @@ type Transfer @entity {
   block: Int!
   transactionHash: String!
 }
+
+# Tab activities bisa dapet dari sini
+# type Activity @entity {
+#   id: ID!
+#   type: String!
+#   transfer: Transfer
+#   sale: Sale
+#   token: Token
+# }
+
+# type Sale @entity {
+#   id: ID!
+#   from: Owner!
+#   to: Owner!
+#   price: Int!
+#   block: Int!
+# }
