@@ -77,10 +77,14 @@ export async function processTransfer(
       tokenId: parseInt(transfer.tokenId.toString()),
       contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,
+      price: BigInt(0),
+      isListed: false,
     };
     token = new Token(input);
     await ctx.store.save(token);
     token = await ctx.store.get(Token, token.id);
+
+    console.log(token);
 
     activityType = ActivityType.MINT;
 
@@ -106,6 +110,7 @@ export async function processTransfer(
   } else {
     token.owner = to;
     token.isListed = false;
+    token.price = BigInt(0);
     await ctx.store.save(token);
     token = await ctx.store.get(Token, token.id);
   }
@@ -180,6 +185,7 @@ export const handleBuy = async (
 
   if (token != null) {
     token.isListed = false;
+    token.price = BigInt(0);
     await ctx.store.save(token);
   }
 
@@ -269,6 +275,7 @@ export const handleSell = async (
 
   if (token != null) {
     token.isListed = true;
+    token.price = sellEvent.price.toBigInt();
     await ctx.store.save(token);
   }
 
@@ -283,6 +290,7 @@ export const handleSell = async (
         id: ethersContract.address + "-" + ctx.txHash + "-" + activityType,
         token,
         from,
+        price: sellEvent.price.toBigInt(),
         type: activityType,
         timestamp: BigInt(ctx.substrate.block.timestamp),
         block: ctx.substrate.block.height,

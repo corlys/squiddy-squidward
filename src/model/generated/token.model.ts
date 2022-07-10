@@ -1,4 +1,5 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_, OneToMany as OneToMany_} from "typeorm"
+import * as marshal from "./marshal"
 import {Owner} from "./owner.model"
 import {Transfer} from "./transfer.model"
 import {Activity} from "./activity.model"
@@ -35,4 +36,7 @@ export class Token {
 
   @Column_("bool", {nullable: true})
   isListed!: boolean | undefined | null
+
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
+  price!: bigint | undefined | null
 }

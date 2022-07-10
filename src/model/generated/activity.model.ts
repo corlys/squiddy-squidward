@@ -25,6 +25,9 @@ export class Activity {
   @ManyToOne_(() => Owner, {nullable: true})
   to!: Owner | undefined | null
 
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
+  price!: bigint | undefined | null
+
   @Column_("varchar", {length: 8, nullable: false})
   type!: ActivityType
 
