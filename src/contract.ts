@@ -105,6 +105,7 @@ export async function processTransfer(
     }
   } else {
     token.owner = to;
+    token.isListed = false;
     await ctx.store.save(token);
     token = await ctx.store.get(Token, token.id);
   }
