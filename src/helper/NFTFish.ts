@@ -39,9 +39,8 @@ export const nftFishContract = new ethers.Contract(
 export function createNftFishContract(): Contract {
   return new Contract({
     id: nftFishContract.address,
-    name: "AstarDegens",
-    symbol: "DEGEN",
-    totalSupply: 10000n,
+    name: "Fish NFT",
+    symbol: "FNFT",
   });
 }
 
@@ -50,9 +49,7 @@ export async function processNftFishTransfers(
 ): Promise<void> {
   console.log("BEGIN!");
   // const currentBlock = await nftFishContract.provider.getBlockNumber();
-  console.log(
-    `Contract with address ${nftFishContract.address.toLowerCase()}`
-  );
+  console.log(`Contract with address ${nftFishContract.address.toLowerCase()}`);
   // console.log("Im on processAstarDegenTransfer ", currentBlock);
   return processTransfer(ctx, nftFishContract);
 }
