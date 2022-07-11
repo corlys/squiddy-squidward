@@ -2,12 +2,13 @@ import * as ethers from "ethers";
 
 export const abi = new ethers.utils.Interface(getJsonAbi());
 
-export interface BuyEventAddressAddressUint256Uint256Uint256Event {
+export interface BuyEventAddressAddressUint256Uint256Uint256AddressEvent {
   buyer: string;
   seller: string;
   tokenId: ethers.BigNumber;
   price: ethers.BigNumber;
   buyTime: ethers.BigNumber;
+  NFTAddress: string;
 }
 
 export interface OwnershipTransferredAddressAddressEvent {
@@ -15,12 +16,11 @@ export interface OwnershipTransferredAddressAddressEvent {
   newOwner: string;
 }
 
-export interface SellEventAddressUint256Uint256Uint256Uint256Event {
+export interface SellEventAddressUint256Uint256AddressEvent {
   seller: string;
   tokenId: ethers.BigNumber;
   price: ethers.BigNumber;
-  startTime: ethers.BigNumber;
-  endTime: ethers.BigNumber;
+  NFTAddress: string;
 }
 
 export interface EvmEvent {
@@ -29,11 +29,11 @@ export interface EvmEvent {
 }
 
 export const events = {
-  "BuyEvent(address,address,uint256,uint256,uint256)":  {
-    topic: abi.getEventTopic("BuyEvent(address,address,uint256,uint256,uint256)"),
-    decode(data: EvmEvent): BuyEventAddressAddressUint256Uint256Uint256Event {
+  "BuyEvent(address,address,uint256,uint256,uint256,address)":  {
+    topic: abi.getEventTopic("BuyEvent(address,address,uint256,uint256,uint256,address)"),
+    decode(data: EvmEvent): BuyEventAddressAddressUint256Uint256Uint256AddressEvent {
       const result = abi.decodeEventLog(
-        abi.getEvent("BuyEvent(address,address,uint256,uint256,uint256)"),
+        abi.getEvent("BuyEvent(address,address,uint256,uint256,uint256,address)"),
         data.data || "",
         data.topics
       );
@@ -43,6 +43,7 @@ export const events = {
         tokenId: result[2],
         price: result[3],
         buyTime: result[4],
+        NFTAddress: result[5],
       }
     }
   }
@@ -62,11 +63,11 @@ export const events = {
     }
   }
   ,
-  "SellEvent(address,uint256,uint256,uint256,uint256)":  {
-    topic: abi.getEventTopic("SellEvent(address,uint256,uint256,uint256,uint256)"),
-    decode(data: EvmEvent): SellEventAddressUint256Uint256Uint256Uint256Event {
+  "SellEvent(address,uint256,uint256,address)":  {
+    topic: abi.getEventTopic("SellEvent(address,uint256,uint256,address)"),
+    decode(data: EvmEvent): SellEventAddressUint256Uint256AddressEvent {
       const result = abi.decodeEventLog(
-        abi.getEvent("SellEvent(address,uint256,uint256,uint256,uint256)"),
+        abi.getEvent("SellEvent(address,uint256,uint256,address)"),
         data.data || "",
         data.topics
       );
@@ -74,8 +75,7 @@ export const events = {
         seller: result[0],
         tokenId: result[1],
         price: result[2],
-        startTime: result[3],
-        endTime: result[4],
+        NFTAddress: result[3],
       }
     }
   }
@@ -132,6 +132,12 @@ function getJsonAbi(): any {
           "internalType": "uint256",
           "name": "buyTime",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "NFTAddress",
+          "type": "address"
         }
       ],
       "name": "BuyEvent",
@@ -179,15 +185,9 @@ function getJsonAbi(): any {
         },
         {
           "indexed": false,
-          "internalType": "uint256",
-          "name": "startTime",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "endTime",
-          "type": "uint256"
+          "internalType": "address",
+          "name": "NFTAddress",
+          "type": "address"
         }
       ],
       "name": "SellEvent",
@@ -204,6 +204,29 @@ function getJsonAbi(): any {
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "_tokenId",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "_tokenURI",
+          "type": "string[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "batchMint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -242,16 +265,6 @@ function getJsonAbi(): any {
         {
           "internalType": "uint256",
           "name": "price",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "startTime",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "endTime",
           "type": "uint256"
         }
       ],
@@ -304,14 +317,9 @@ function getJsonAbi(): any {
           "type": "uint256"
         },
         {
-          "internalType": "uint256",
-          "name": "_startTime",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_endTime",
-          "type": "uint256"
+          "internalType": "string",
+          "name": "_tokenURI",
+          "type": "string"
         }
       ],
       "name": "sell",

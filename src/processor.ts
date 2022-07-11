@@ -130,8 +130,9 @@ processor.addEvmLogHandler(
   fishMarketplaceContract.address.toLowerCase(),
   {
     filter: [
-      marketplaceEvent["BuyEvent(address,address,uint256,uint256,uint256)"]
-        .topic,
+      marketplaceEvent[
+        "BuyEvent(address,address,uint256,uint256,uint256,address)"
+      ].topic,
     ],
   },
   processMarketplaceBuy
@@ -142,8 +143,7 @@ processor.addEvmLogHandler(
   fishMarketplaceContract.address.toLowerCase(),
   {
     filter: [
-      marketplaceEvent["SellEvent(address,uint256,uint256,uint256,uint256)"]
-        .topic,
+      marketplaceEvent["SellEvent(address,uint256,uint256,address)"].topic,
     ],
   },
   processMarketplaceSell

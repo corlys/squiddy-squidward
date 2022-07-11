@@ -47,6 +47,12 @@
         "internalType": "uint256",
         "name": "buyTime",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "NFTAddress",
+        "type": "address"
       }
     ],
     "name": "BuyEvent",
@@ -94,15 +100,9 @@
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "startTime",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "endTime",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "NFTAddress",
+        "type": "address"
       }
     ],
     "name": "SellEvent",
@@ -119,6 +119,29 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "_tokenId",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_tokenURI",
+        "type": "string[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "batchMint",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -157,16 +180,6 @@
       {
         "internalType": "uint256",
         "name": "price",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "startTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "endTime",
         "type": "uint256"
       }
     ],
@@ -219,14 +232,9 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "_startTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_endTime",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "_tokenURI",
+        "type": "string"
       }
     ],
     "name": "sell",
