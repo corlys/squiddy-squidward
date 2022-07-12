@@ -180,6 +180,7 @@ export const handleBuy = async (
     `${buyEvent.NFTAddress}-${buyEvent.tokenId.toString()}`
   );
 
+  // token already exists if the buyEvent ran.
   if (token != null) {
     token.isListed = false;
     token.price = BigInt(0);
