@@ -229,10 +229,52 @@ export const handleSell = async (
     `${sellEvent.NFTAddress}-${sellEvent.tokenId.toString()}`
   );
 
+  // There are chance token does not exists yet
   if (token != null) {
     token.isListed = true;
     token.price = sellEvent.price.toBigInt();
     await ctx.store.save(token);
+  } else {
+    const userZero = await ctx.store.get(
+      Owner,
+      "0x0000000000000000000000000000000000000000"
+    );
+
+    const input = {
+      id: `${ethersContract.address}-${sellEvent.tokenId.toString()}`,
+      uri: await ethersContract.tokenURI(sellEvent.tokenId.toString()),
+      tokenId: parseInt(sellEvent.tokenId.toString()),
+      contract: await getContractEntity(ctx, ethersContract, undefined),
+      owner: from,
+      price: BigInt(0),
+      isListed: false,
+    };
+
+    token = new Token(input);
+    await ctx.store.save(token);
+    token = await ctx.store.get(Token, token.id);
+
+    activityType = ActivityType.MINT;
+
+    activityEntity = await ctx.store.get(
+      Activity,
+      ethersContract.address + "-" + ctx.txHash + "-" + activityType
+    );
+
+    if (activityEntity == null) {
+      activityEntity = await ctx.store.save(
+        new Activity({
+          id: ethersContract.address + "-" + ctx.txHash + "-" + activityType,
+          token,
+          from: userZero ?? null,
+          to: from,
+          type: activityType,
+          timestamp: BigInt(ctx.substrate.block.timestamp),
+          block: ctx.substrate.block.height,
+          transactionHash: ctx.txHash,
+        })
+      );
+    }
   }
 
   activityEntity = await ctx.store.get(
