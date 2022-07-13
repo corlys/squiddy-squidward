@@ -81,19 +81,30 @@ export async function processTransfer(
     await ctx.store.save(token);
     token = await ctx.store.get(Token, token.id);
 
-    console.log(token);
-
     activityType = ActivityType.MINT;
 
     activityEntity = await ctx.store.get(
       Activity,
-      ethersContract.address + "-" + ctx.txHash + "-" + activityType
+      ethersContract.address +
+        "-" +
+        ctx.txHash +
+        "-" +
+        transfer.tokenId.toString() +
+        "-" +
+        activityType
     );
 
     if (activityEntity == null) {
       activityEntity = await ctx.store.save(
         new Activity({
-          id: ethersContract.address + "-" + ctx.txHash + "-" + activityType,
+          id:
+            ethersContract.address +
+            "-" +
+            ctx.txHash +
+            "-" +
+            transfer.tokenId.toString() +
+            "-" +
+            activityType,
           token,
           from,
           to,
@@ -114,7 +125,12 @@ export async function processTransfer(
 
   await ctx.store.save(
     new Transfer({
-      id: ctx.txHash,
+      id:
+        ethersContract.address +
+        "-" +
+        ctx.txHash +
+        "-" +
+        transfer.tokenId.toString(),
       token,
       from,
       to,
@@ -126,13 +142,26 @@ export async function processTransfer(
 
   activityEntity = await ctx.store.get(
     Activity,
-    ethersContract.address + "-" + ctx.txHash + "-" + activityType
+    ethersContract.address +
+      "-" +
+      ctx.txHash +
+      "-" +
+      transfer.tokenId.toString() +
+      "-" +
+      activityType
   );
 
   if (activityEntity == null) {
     activityEntity = await ctx.store.save(
       new Activity({
-        id: ethersContract.address + "-" + ctx.txHash + "-" + activityType,
+        id:
+          ethersContract.address +
+          "-" +
+          ctx.txHash +
+          "-" +
+          transfer.tokenId.toString() +
+          "-" +
+          activityType,
         token,
         from,
         to,
@@ -189,13 +218,26 @@ export const handleBuy = async (
 
   activityEntity = await ctx.store.get(
     Activity,
-    ethersContract.address + "-" + ctx.txHash + "-" + activityType
+    ethersContract.address +
+      "-" +
+      ctx.txHash +
+      "-" +
+      buyEvent.tokenId.toString() +
+      "-" +
+      activityType
   );
 
   if (activityEntity == null) {
     activityEntity = await ctx.store.save(
       new Activity({
-        id: ethersContract.address + "-" + ctx.txHash + "-" + activityType,
+        id:
+          ethersContract.address +
+          "-" +
+          ctx.txHash +
+          "-" +
+          buyEvent.tokenId.toString() +
+          "-" +
+          activityType,
         token,
         from,
         to,
@@ -258,13 +300,26 @@ export const handleSell = async (
 
     activityEntity = await ctx.store.get(
       Activity,
-      ethersContract.address + "-" + ctx.txHash + "-" + activityType
+      ethersContract.address +
+        "-" +
+        ctx.txHash +
+        "-" +
+        sellEvent.tokenId.toString() +
+        "-" +
+        activityType
     );
 
     if (activityEntity == null) {
       activityEntity = await ctx.store.save(
         new Activity({
-          id: ethersContract.address + "-" + ctx.txHash + "-" + activityType,
+          id:
+            ethersContract.address +
+            "-" +
+            ctx.txHash +
+            "-" +
+            sellEvent.tokenId.toString() +
+            "-" +
+            activityType,
           token,
           from: userZero ?? null,
           to: from,
@@ -279,13 +334,26 @@ export const handleSell = async (
 
   activityEntity = await ctx.store.get(
     Activity,
-    ethersContract.address + "-" + ctx.txHash + "-" + activityType
+    ethersContract.address +
+      "-" +
+      ctx.txHash +
+      "-" +
+      sellEvent.tokenId.toString() +
+      "-" +
+      activityType
   );
 
   if (activityEntity == null) {
     activityEntity = await ctx.store.save(
       new Activity({
-        id: ethersContract.address + "-" + ctx.txHash + "-" + activityType,
+        id:
+          ethersContract.address +
+          "-" +
+          ctx.txHash +
+          "-" +
+          sellEvent.tokenId.toString() +
+          "-" +
+          activityType,
         token,
         from,
         price: sellEvent.price.toBigInt(),
