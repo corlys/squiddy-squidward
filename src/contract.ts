@@ -5,8 +5,17 @@ import {
   Store,
 } from "@subsquid/substrate-evm-processor";
 import { ethers } from "ethers";
-import { Contract, Owner, Token, Transfer } from "./model";
-import { events, abi } from "./abi/erc721";
+import axios from "axios";
+import {
+  Contract,
+  Owner,
+  Token,
+  Transfer,
+  Activity,
+  ActivityType,
+} from "./model";
+import { events } from "./abi/erc721";
+import { events as marketPlaceEvent } from "./abi/marketPlace";
 
 // export const CHAIN_NODE =
 //   "wss://astar.api.onfinality.io/ws?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
@@ -15,6 +24,12 @@ export const PRIVATE_CHAIN_NODE =
   "wss://astar.api.onfinality.io/ws?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
 export const HTTPS_NODE =
   "https://astar.api.onfinality.io/rpc?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
+
+interface ITokenURI {
+  image: string;
+  description: string;
+  name: string;
+}
 
 export async function getContractEntity(
   {
@@ -36,6 +51,8 @@ export async function processTransfer(
   ethersContract: ethers.Contract
 ): Promise<void> {
   const transfer = events["Transfer(address,address,uint256)"].decode(ctx);
+  let activityEntity = null;
+  let activityType = ActivityType.TRANSFER;
 
   console.log(`listening block ${ctx.substrate.block.height}`);
 
@@ -53,70 +70,87 @@ export async function processTransfer(
   console.log(
     "================================================================================"
   );
-  console.log(
-    `Now indexing contract : ${ethersContract.address} and the ctx is ${ctx.contractAddress}`
-  );
-  console.log(`at txHash : ${ctx.txHash}`);
-  console.log(`and block : ${ctx.substrate.block.height}`);
-  console.log(
-    `at timestamp : ${new Date(ctx.substrate.block.timestamp * 1000)}`
-  );
   let token = await ctx.store.get(
     Token,
     `${ethersContract.address}-${transfer.tokenId.toString()}`
   );
-  console.log(
-    `token that is fetched with id ${
-      ethersContract.address
-    }-${transfer.tokenId.toString()} is ${token}`
-  );
   if (token == null) {
-    console.log("the token is null or undefined");
-    console.log("Heres the input : ");
-    console.log(
-      `id : ${ethersContract.address}-${transfer.tokenId.toString()}`
+    const uri: string = await ethersContract.tokenURI(
+      transfer.tokenId.toString()
     );
-    console.log(
-      `the token id thats gonna be fetched in ${
-        ethersContract.address
-      } is ${transfer.tokenId.toNumber()}`
-    );
-    console.log(`tokenId: ${parseInt(transfer.tokenId.toString())}`);
-    console.log(`to address : ${to.id}`);
-    console.log(
-      `contract address ${
-        (await getContractEntity(ctx, ethersContract, undefined)).id
-      }`
-    );
+    let imageUri: string;
+    if (uri.includes("ipfs://")) {
+      const get = await axios.get<ITokenURI>(
+        uri.replace("ipfs://", "https://nftstorage.link/ipfs/")
+      );
+      imageUri = get.data.image;
+    } else {
+      imageUri = "";
+    }
     const input = {
       id: `${ethersContract.address}-${transfer.tokenId.toString()}`,
-      uri: await ethersContract.tokenURI(transfer.tokenId.toString()),
-      // uri: tokenURI,
+      uri,
       tokenId: parseInt(transfer.tokenId.toString()),
       contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,
+      price: BigInt(0),
+      isListed: false,
+      imageUri
     };
-    console.log(`token input : ${input}`);
     token = new Token(input);
-    console.log(`token that is made: ${token}`);
     await ctx.store.save(token);
     token = await ctx.store.get(Token, token.id);
-    console.log(`token that is saved: ${token}`);
+
+    activityType = ActivityType.MINT;
+
+    activityEntity = await ctx.store.get(
+      Activity,
+      ethersContract.address +
+        "-" +
+        ctx.txHash +
+        "-" +
+        transfer.tokenId.toString() +
+        "-" +
+        activityType
+    );
+
+    if (activityEntity == null) {
+      activityEntity = await ctx.store.save(
+        new Activity({
+          id:
+            ethersContract.address +
+            "-" +
+            ctx.txHash +
+            "-" +
+            transfer.tokenId.toString() +
+            "-" +
+            activityType,
+          token,
+          from,
+          to,
+          type: activityType,
+          timestamp: BigInt(ctx.substrate.block.timestamp),
+          block: ctx.substrate.block.height,
+          transactionHash: ctx.txHash,
+        })
+      );
+    }
   } else {
-    console.log("the token exist");
     token.owner = to;
-    console.log(`token that is updated: ${token}`);
+    token.isListed = false;
+    token.price = BigInt(0);
     await ctx.store.save(token);
     token = await ctx.store.get(Token, token.id);
-    console.log(`token that is saved: ${token}`);
   }
 
-  console.log(`from : ${from.id}`);
-  console.log(`to : ${to.id}`);
-
-  const saveTransfer = await ctx.store.save(
+  await ctx.store.save(
     new Transfer({
-      id: ctx.txHash,
+      id:
+        ethersContract.address +
+        "-" +
+        ctx.txHash +
+        "-" +
+        transfer.tokenId.toString(),
       token,
       from,
       to,
@@ -126,8 +160,240 @@ export async function processTransfer(
     })
   );
 
-  console.log(`transfer : ${saveTransfer.transactionHash}`);
+  activityEntity = await ctx.store.get(
+    Activity,
+    ethersContract.address +
+      "-" +
+      ctx.txHash +
+      "-" +
+      transfer.tokenId.toString() +
+      "-" +
+      activityType
+  );
+
+  if (activityEntity == null) {
+    activityEntity = await ctx.store.save(
+      new Activity({
+        id:
+          ethersContract.address +
+          "-" +
+          ctx.txHash +
+          "-" +
+          transfer.tokenId.toString() +
+          "-" +
+          activityType,
+        token,
+        from,
+        to,
+        type: activityType,
+        timestamp: BigInt(ctx.substrate.block.timestamp),
+        block: ctx.substrate.block.height,
+        transactionHash: ctx.txHash,
+      })
+    );
+  }
+
+  console.log("Done handling token : ", token?.id);
+
   console.log(
     "===============================================================================n\n"
   );
 }
+
+export const handleBuy = async (
+  ctx: EvmLogHandlerContext,
+  ethersContract: ethers.Contract
+) => {
+  const buyEvent =
+    marketPlaceEvent[
+      "BuyEvent(address,address,uint256,uint256,uint256,address)"
+    ].decode(ctx);
+
+  let activityType = ActivityType.SOLD;
+  let activityEntity = null;
+
+  let from = await ctx.store.get(Owner, buyEvent.seller);
+  if (from == null) {
+    from = new Owner({ id: buyEvent.seller, balance: 0n });
+    await ctx.store.save(from);
+  }
+
+  let to = await ctx.store.get(Owner, buyEvent.buyer);
+  if (to == null) {
+    to = new Owner({ id: buyEvent.buyer, balance: 0n });
+    await ctx.store.save(to);
+  }
+
+  let token = await ctx.store.get(
+    Token,
+    `${buyEvent.NFTAddress}-${buyEvent.tokenId.toString()}`
+  );
+
+  // token already exists if the buyEvent ran.
+  if (token != null) {
+    token.isListed = false;
+    token.price = BigInt(0);
+    await ctx.store.save(token);
+  }
+
+  activityEntity = await ctx.store.get(
+    Activity,
+    ethersContract.address +
+      "-" +
+      ctx.txHash +
+      "-" +
+      buyEvent.tokenId.toString() +
+      "-" +
+      activityType
+  );
+
+  if (activityEntity == null) {
+    activityEntity = await ctx.store.save(
+      new Activity({
+        id:
+          ethersContract.address +
+          "-" +
+          ctx.txHash +
+          "-" +
+          buyEvent.tokenId.toString() +
+          "-" +
+          activityType,
+        token,
+        from,
+        to,
+        type: activityType,
+        timestamp: BigInt(ctx.substrate.block.timestamp),
+        block: ctx.substrate.block.height,
+        transactionHash: ctx.txHash,
+      })
+    );
+  }
+};
+
+export const handleSell = async (
+  ctx: EvmLogHandlerContext,
+  ethersContract: ethers.Contract
+) => {
+  const sellEvent =
+    marketPlaceEvent["SellEvent(address,uint256,uint256,address)"].decode(ctx);
+
+  let activityType = ActivityType.LISTING;
+  let activityEntity = null;
+
+  let from = await ctx.store.get(Owner, sellEvent.seller);
+  if (from == null) {
+    from = new Owner({ id: sellEvent.seller, balance: 0n });
+    await ctx.store.save(from);
+  }
+
+  let token = await ctx.store.get(
+    Token,
+    `${sellEvent.NFTAddress}-${sellEvent.tokenId.toString()}`
+  );
+
+  // There are chance token does not exists yet
+  if (token != null) {
+    token.isListed = true;
+    token.price = sellEvent.price.toBigInt();
+    await ctx.store.save(token);
+  } else {
+    const userZero = await ctx.store.get(
+      Owner,
+      "0x0000000000000000000000000000000000000000"
+    );
+    const uri: string = await ethersContract.tokenURI(
+      sellEvent.tokenId.toString()
+    );
+    let imageUri: string;
+    if (uri.includes("ipfs://")) {
+      const get = await axios.get<ITokenURI>(
+        uri.replace("ipfs://", "https://nftstorage.link/ipfs/")
+      );
+      imageUri = get.data.image;
+    } else {
+      imageUri = "";
+    }
+    const input = {
+      id: `${ethersContract.address}-${sellEvent.tokenId.toString()}`,
+      uri,
+      tokenId: parseInt(sellEvent.tokenId.toString()),
+      contract: await getContractEntity(ctx, ethersContract, undefined),
+      owner: from,
+      price: BigInt(0),
+      isListed: false,
+      imageUri,
+    };
+
+    token = new Token(input);
+    await ctx.store.save(token);
+    token = await ctx.store.get(Token, token.id);
+
+    activityType = ActivityType.MINT;
+
+    activityEntity = await ctx.store.get(
+      Activity,
+      ethersContract.address +
+        "-" +
+        ctx.txHash +
+        "-" +
+        sellEvent.tokenId.toString() +
+        "-" +
+        activityType
+    );
+
+    if (activityEntity == null) {
+      activityEntity = await ctx.store.save(
+        new Activity({
+          id:
+            ethersContract.address +
+            "-" +
+            ctx.txHash +
+            "-" +
+            sellEvent.tokenId.toString() +
+            "-" +
+            activityType,
+          token,
+          from: userZero ?? null,
+          to: from,
+          type: activityType,
+          timestamp: BigInt(ctx.substrate.block.timestamp),
+          block: ctx.substrate.block.height,
+          transactionHash: ctx.txHash,
+        })
+      );
+    }
+  }
+
+  activityEntity = await ctx.store.get(
+    Activity,
+    ethersContract.address +
+      "-" +
+      ctx.txHash +
+      "-" +
+      sellEvent.tokenId.toString() +
+      "-" +
+      activityType
+  );
+
+  if (activityEntity == null) {
+    activityEntity = await ctx.store.save(
+      new Activity({
+        id:
+          ethersContract.address +
+          "-" +
+          ctx.txHash +
+          "-" +
+          sellEvent.tokenId.toString() +
+          "-" +
+          activityType,
+        token,
+        from,
+        price: sellEvent.price.toBigInt(),
+        type: activityType,
+        timestamp: BigInt(ctx.substrate.block.timestamp),
+        block: ctx.substrate.block.height,
+        transactionHash: ctx.txHash,
+      })
+    );
+  }
+};
