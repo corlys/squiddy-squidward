@@ -11,6 +11,7 @@ type Token @entity {
   contract: Contract
   isListed: Boolean
   price: BigInt
+  imageUri: String
 }
 
 type Owner @entity {

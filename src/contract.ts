@@ -5,6 +5,7 @@ import {
   Store,
 } from "@subsquid/substrate-evm-processor";
 import { ethers } from "ethers";
+import axios from "axios";
 import {
   Contract,
   Owner,
@@ -23,6 +24,12 @@ export const PRIVATE_CHAIN_NODE =
   "wss://astar.api.onfinality.io/ws?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
 export const HTTPS_NODE =
   "https://astar.api.onfinality.io/rpc?apikey=70f02ff7-58b9-4d16-818c-2bf302230f7d";
+
+interface ITokenURI {
+  image: string;
+  description: string;
+  name: string;
+}
 
 export async function getContractEntity(
   {
@@ -68,14 +75,27 @@ export async function processTransfer(
     `${ethersContract.address}-${transfer.tokenId.toString()}`
   );
   if (token == null) {
+    const uri: string = await ethersContract.tokenURI(
+      transfer.tokenId.toString()
+    );
+    let imageUri: string;
+    if (uri.includes("ipfs://")) {
+      const get = await axios.get<ITokenURI>(
+        uri.replace("ipfs://", "https://nftstorage.link/ipfs/")
+      );
+      imageUri = get.data.image;
+    } else {
+      imageUri = "";
+    }
     const input = {
       id: `${ethersContract.address}-${transfer.tokenId.toString()}`,
-      uri: await ethersContract.tokenURI(transfer.tokenId.toString()),
+      uri,
       tokenId: parseInt(transfer.tokenId.toString()),
       contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: to,
       price: BigInt(0),
       isListed: false,
+      imageUri
     };
     token = new Token(input);
     await ctx.store.save(token);
@@ -281,15 +301,27 @@ export const handleSell = async (
       Owner,
       "0x0000000000000000000000000000000000000000"
     );
-
+    const uri: string = await ethersContract.tokenURI(
+      sellEvent.tokenId.toString()
+    );
+    let imageUri: string;
+    if (uri.includes("ipfs://")) {
+      const get = await axios.get<ITokenURI>(
+        uri.replace("ipfs://", "https://nftstorage.link/ipfs/")
+      );
+      imageUri = get.data.image;
+    } else {
+      imageUri = "";
+    }
     const input = {
       id: `${ethersContract.address}-${sellEvent.tokenId.toString()}`,
-      uri: await ethersContract.tokenURI(sellEvent.tokenId.toString()),
+      uri,
       tokenId: parseInt(sellEvent.tokenId.toString()),
       contract: await getContractEntity(ctx, ethersContract, undefined),
       owner: from,
       price: BigInt(0),
       isListed: false,
+      imageUri,
     };
 
     token = new Token(input);

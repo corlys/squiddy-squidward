@@ -31,7 +31,7 @@ let w3sProvider = new ethers.providers.Web3Provider(w3s);
 // let httpsProvider = new ethers.providers.JsonRpcProvider(HTTPS_NODE);
 
 export const nftFishContract = new ethers.Contract(
-  "0x9c4020343B1f1C5E781264FC5c83f10bfd212416".toLowerCase(),
+  "0x34d78cca552944430367A83C1A8E92B13A201e67".toLowerCase(),
   abi,
   w3sProvider
 );

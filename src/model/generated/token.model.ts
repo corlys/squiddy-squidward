@@ -39,4 +39,7 @@ export class Token {
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
   price!: bigint | undefined | null
+
+  @Column_("text", {nullable: true})
+  imageUri!: string | undefined | null
 }

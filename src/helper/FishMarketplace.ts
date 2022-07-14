@@ -33,7 +33,7 @@ let w3sProvider = new ethers.providers.Web3Provider(w3s);
 // let httpsProvider = new ethers.providers.JsonRpcProvider(HTTPS_NODE);
 
 export const fishMarketplaceContract = new ethers.Contract(
-  "0x91B8AE51096DF40796Dd6abe0F4fd2f1Ee19e281".toLowerCase(),
+  "0xC7b9a5c69C5050082A376aeACcECA2C3297b3b35".toLowerCase(),
   abi,
   w3sProvider
 );
