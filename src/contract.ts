@@ -95,7 +95,7 @@ export async function processTransfer(
       owner: to,
       price: BigInt(0),
       isListed: false,
-      imageUri
+      imageUri,
     };
     token = new Token(input);
     await ctx.store.save(token);
@@ -226,7 +226,7 @@ export const handleBuy = async (
 
   let token = await ctx.store.get(
     Token,
-    `${buyEvent.NFTAddress}-${buyEvent.tokenId.toString()}`
+    `${buyEvent.NFTAddress.toLowerCase()}-${buyEvent.tokenId.toString()}`
   );
 
   // token already exists if the buyEvent ran.
@@ -288,7 +288,7 @@ export const handleSell = async (
 
   let token = await ctx.store.get(
     Token,
-    `${sellEvent.NFTAddress}-${sellEvent.tokenId.toString()}`
+    `${sellEvent.NFTAddress.toLowerCase()}-${sellEvent.tokenId.toString()}`
   );
 
   // There are chance token does not exists yet
