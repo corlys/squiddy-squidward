@@ -50,7 +50,7 @@ const processor = new SubstrateEvmProcessor("astar-substrate");
 // processor.setBlockRange({ from: 1248161 });
 
 // listen from NFT Fish startBlock and up!
-processor.setBlockRange({ from: 1431575 });
+processor.setBlockRange({ from: 1477747 });
 
 processor.setBatchSize(500);
 
@@ -80,12 +80,12 @@ processor.setTypesBundle("astar");
 // });
 
 // Create NFTFish contract Entity in their startBlock
-processor.addPreHook({ range: { from: 1431575, to: 1431575 } }, async (ctx) => {
+processor.addPreHook({ range: { from: 1477747, to: 1477747 } }, async (ctx) => {
   await ctx.store.save(createNftFishContract());
 });
 
 // Create Marketplace contract Entity in their startBlock
-processor.addPreHook({ range: { from: 1431584, to: 1431584 } }, async (ctx) => {
+processor.addPreHook({ range: { from: 1477749, to: 1477749 } }, async (ctx) => {
   await ctx.store.save(createFishMarketplaceContract());
 });
 

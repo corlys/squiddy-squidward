@@ -209,11 +209,6 @@ function getJsonAbi(): any {
     {
       "inputs": [
         {
-          "internalType": "uint256[]",
-          "name": "_tokenId",
-          "type": "uint256[]"
-        },
-        {
           "internalType": "string[]",
           "name": "_tokenURI",
           "type": "string[]"
