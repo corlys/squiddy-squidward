@@ -31,6 +31,11 @@ import {
   nftFishContract,
   processNftFishTransfers,
 } from "./helper/NFTFish";
+import {
+  createTicketPassAContract,
+  processTicketPassATransfers,
+  ticketPassAContract,
+} from "./helper/TicketPassA";
 
 const processor = new SubstrateEvmProcessor("astar-substrate");
 
@@ -49,8 +54,8 @@ const processor = new SubstrateEvmProcessor("astar-substrate");
 // listen from Jukiverse startBlock and up!
 // processor.setBlockRange({ from: 1248161 });
 
-// listen from NFT Fish startBlock and up!
-processor.setBlockRange({ from: 1477747 });
+// listen from startBlock and up!
+processor.setBlockRange({ from: 1517540 });
 
 processor.setBatchSize(500);
 
@@ -80,13 +85,18 @@ processor.setTypesBundle("astar");
 // });
 
 // Create NFTFish contract Entity in their startBlock
-processor.addPreHook({ range: { from: 1477747, to: 1477747 } }, async (ctx) => {
-  await ctx.store.save(createNftFishContract());
-});
+// processor.addPreHook({ range: { from: 1477747, to: 1477747 } }, async (ctx) => {
+//   await ctx.store.save(createNftFishContract());
+// });
 
 // Create Marketplace contract Entity in their startBlock
-processor.addPreHook({ range: { from: 1477749, to: 1477749 } }, async (ctx) => {
-  await ctx.store.save(createFishMarketplaceContract());
+// processor.addPreHook({ range: { from: 1477749, to: 1477749 } }, async (ctx) => {
+//   await ctx.store.save(createFishMarketplaceContract());
+// });
+
+// TicketPassA Contract
+processor.addPreHook({ range: { from: 1517540, to: 1517540 } }, async (ctx) => {
+  await ctx.store.save(createTicketPassAContract());
 });
 
 // // Event listener for Transfer Astar Degens
@@ -136,6 +146,17 @@ processor.addEvmLogHandler(
     ],
   },
   processMarketplaceBuy
+);
+
+// Event Listener for TicketPassA
+processor.addEvmLogHandler(
+  ticketPassAContract.address.toLowerCase(),
+  {
+    filter: [
+      events["Transfer(address,address,uint256)"].topic,
+    ],
+  },
+  processTicketPassATransfers
 );
 
 // Event listener for sellEvent FishMartetplace Contract
